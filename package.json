@@ -1,21 +1,17 @@
 {
-  "name": "kitchen-assistant",
-  "version": "1.0.0",
-  "description": "This example is so cool.",
-  "main": "app.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "name": "kitchen-assistant",
+    "version": "1.0.0",
+    "description": "node app ",
+    "main": "app.js",
+    "scripts": {
+    "start": "node app.js"
   },
-  "keywords": [
-    "example",
-    "heroku"
-  ],
-  "author": "jane-doe",
-  "license": "MIT",
-  "dependencies": {
-    "express": "^4.9.8"
+    "repository": {
+    "type": "git",
+    "url": ""
   },
-  "engines": {
-    "node": "10.x"
+    "author": "",
+    "license": "ISC",
+
+    "homepage": ""
   }
-}
