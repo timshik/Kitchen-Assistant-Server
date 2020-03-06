@@ -1,17 +1,16 @@
 {
-    "name": "kitchen-assistant",
+    "name": "demo",
     "version": "1.0.0",
-    "description": "node app ",
+    "description": "",
     "main": "app.js",
     "scripts": {
-    "start": "node app.js"
-  },
-    "repository": {
-    "type": "git",
-    "url": ""
-  },
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "node app.js"
+    },
+    "keywords": [],
     "author": "",
     "license": "ISC",
-
-    "homepage": ""
-  }
+    "dependencies": {
+    "express": "⁴.16.2"
+    }
+}

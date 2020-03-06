@@ -1,12 +1,12 @@
-const http = require('http');
-const port = process.env.PORT || 3000
+// in sublime
+var express = require('express');
+var port = process.env.PORT || 3000;
+var app = express();
 
-const server = http.createServer((req, res) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/html');
-  res.end('<h1>Kitchen Assistant Server is UP! in node.js</h1>');
+app.get('/', function (req, res) {
+    res.send({ Hello: 'World'});
 });
 
-server.listen(port,() => {
-  console.log(`Server running at port `+port);
+app.listen(port, function () {
+    console.log('Example app listening on port !');
 });
