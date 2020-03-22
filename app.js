@@ -12,11 +12,12 @@ app.get('/', function (req, res) {
         if (err) {
             res.send({
                 "database connection" : "failed",
-                "error" : err.errmsg
+                "error" : err.name,
+                "error msg" : err.message
             });
         } else {
             res.send({
-                "database connection" : "success"
+                "database connection" : "success",
             })
         }
     })
