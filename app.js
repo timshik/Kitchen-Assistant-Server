@@ -6,7 +6,8 @@ var port = process.env.PORT || 3000;
 var app = express();
 
 database.connect(function(err) {
-    if (err) throw err;
+    if (err) 
+        console.log("Not connected, error: " + err);
     console.log("Connected!");
 });
 
