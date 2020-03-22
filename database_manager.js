@@ -2,7 +2,7 @@ const MongoClient = require('mongodb').MongoClient;
 const assert = require('assert');
  
 // Connection URL
-const uri = ENV['MONGODB_URI'];
+const uri = process.env.MONGODB_URI;
 const client = new MongoClient(uri);
 
 
