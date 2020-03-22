@@ -1,6 +1,6 @@
 // in sublime
 var cors = require('cors');
-const database = require('./database_manager');
+const client = require('./database_manager').client;
 var express = require('express');
 var port = process.env.PORT || 3000;
 var app = express();
@@ -8,7 +8,18 @@ var app = express();
 app.use(cors())
 
 app.get('/', function (req, res) {
-    res.send({ Hello: 'World'});
+    client.connect(function(err, client) {
+        if (err) {
+            res.send({
+                "database connection" : "failed",
+                "error" : err.errmsg
+            });
+        } else {
+            res.send({
+                "database connection" : "success"
+            })
+        }
+    })
 });
 
 app.get('/help', function (req, res) {
