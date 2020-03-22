@@ -10,14 +10,14 @@ app.use(cors())
 app.get('/', function (req, res) {
     client.connect(function(err, client) {
         if (err) {
-            res.send({
+            res.send(JSON.stringify({
                 "database connection" : "failed",
-                "error" : err.errmsg
-            });
+                "error" : err
+            }));
         } else {
-            res.send({
-                "database connection" : "success"
-            })
+            res.send(JSON.stringify({
+                "database connection" : "success",
+            }))
         }
     })
 });
