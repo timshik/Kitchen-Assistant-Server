@@ -11,6 +11,11 @@ router.get('/add/:name', function(request, response) {
     response.send("in add user: " + request.name);
 });
 
+router.get('/login', function(request, response) {
+    console.log("here");
+    response.send("In login, " + JSON.parse(request)); 
+});
+
 module.exports = {
     user_api: router
 }
