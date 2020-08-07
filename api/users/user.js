@@ -13,7 +13,7 @@ router.get('/add/:name', function(request, response) {
 
 router.post('/login', function(request, response) {
     console.log("here");
-    response.send(request.params); 
+    response.send(request.body); 
 });
 
 module.exports = {
