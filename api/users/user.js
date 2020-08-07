@@ -13,7 +13,7 @@ router.get('/add/:name', function(request, response) {
 
 router.post('/login', function(request, response) {
     console.log("here");
-    console.log(request.body);
+    console.log(request.params);
     response.send("In login"); 
 });
 
