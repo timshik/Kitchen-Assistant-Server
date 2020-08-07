@@ -4,7 +4,7 @@ var app = require("./server/server").server;
 var api = require("./api/api").router;
 
 app.get('/', function (req, res) {
-    client.connect(function(err, client) {
+    client(function(err, client) {
         if (err) {
             res.send({
                 "database connection" : "failed",
