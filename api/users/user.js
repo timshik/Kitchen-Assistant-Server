@@ -13,8 +13,7 @@ router.get('/add/:name', function(request, response) {
 
 router.post('/login', function(request, response) {
     console.log("here");
-    console.log(request.param("email"));
-    response.send("In login"); 
+    response.send(request.params); 
 });
 
 module.exports = {
