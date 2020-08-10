@@ -12,5 +12,6 @@ const dbManager = function(callback) {
 }
 
 module.exports = {
-    client: dbManager
+    client: dbManager,
+    manager: manager,
 }

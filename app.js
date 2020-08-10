@@ -1,5 +1,6 @@
 const client = require('./db/database_manager').client;
 var cors = require('cors');
+const bodyParser = require('body-parser');
 var app = require("./server/server").server;
 var api = require("./api/api").router;
 
@@ -19,8 +20,10 @@ app.get('/', function (req, res) {
     })
 });
 
+app.use(bodyParser.json());
+
 app.use('/api', api);
 
-app.get('/help', function (req, res) {
-    res.send({ page: 'help', result: 'kitchen helper'});
-});
+// app.get('/help', function (req, res) {
+//     res.send({ page: 'help', result: 'kitchen helper'});
+// });
