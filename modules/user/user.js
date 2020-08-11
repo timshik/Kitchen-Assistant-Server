@@ -10,16 +10,15 @@ const userSchema = dbManager.mongoose.Schema({
 const User = dbManager.mongoose.model('User', userSchema, 'users');
 
 function login(email, password, response) {
-    const object = {email: email, password: password};
     if (validator(email, password)) {
          dbManager.manager.collection('users').findOne(
-            object, 
+            {email: email, password: password}, 
              function(error, result) {
                 if (error || !result) {
                     utils.error(response, "EMAIL_PASSWORD_INCORRECT");
                     return;
                 }
-                utils.success(response, object);
+                utils.success(response, {email: email});
          });
     }
 };
