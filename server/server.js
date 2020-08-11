@@ -7,17 +7,13 @@ app.listen(port, function () {
 });
 
 const utils = {
-    error: function(code) {
-        return {
-            'error': code,
-            'status': 400
-        }
+    error: function(response, text) {
+        response.status(400);
+        response.send({'error' : text});
     },
-    success: function(code) {
-        return {
-            'error': code,
-            'status': 200
-        }
+    success: function(response, text) {
+        response.status(200);
+        response.send(text);
     }
 }
 

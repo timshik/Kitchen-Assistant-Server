@@ -5,7 +5,7 @@ const validator = (email, password) => {
             return false;
         } 
 
-        return !email_validator.validate(email);
+        return email_validator.validate(email);
     }
 
 module.exports = validator;
