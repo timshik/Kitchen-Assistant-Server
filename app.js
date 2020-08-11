@@ -1,26 +1,28 @@
 const client = require('./db/database_manager').client;
 var cors = require('cors');
+const bodyParser = require('body-parser');
+const { request } = require('express');
+const { utils } = require('./server/server');
 var app = require("./server/server").server;
 var api = require("./api/api").router;
 
 app.get('/', function (req, res) {
     client(function(err, client) {
         if (err) {
-            res.send({
-                "database connection" : "failed",
-                "error" : err.name,
-                "error msg" : err.message
-            });
-        } else {
-            res.send({
-                "database connection" : "success",
-            })
+            utils.error(res, err.message);
+            return;
         }
+        utils.success(res, {'message' : 'Connected to DB finish successfully! All API paramters are OK!'});
     })
 });
 
-app.use('/api', api);
+// Parse application json requests
+app.use(bodyParser.json());
 
-app.get('/help', function (req, res) {
-    res.send({ page: 'help', result: 'kitchen helper'});
+// Middleware function
+app.use(function (req, res, next) {
+    //TODO add token for defined users in API ?? 
+    next();
 });
+
+app.use('/api', api);

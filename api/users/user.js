@@ -1,14 +1,15 @@
 const express = require("../../server/server").express;
 const app = require("../../server/server").server;
+const utils = require("../../server/server").utils;
 const router = express.Router();
+const user = require("../../modules/user/user").object;
 
-router.param('name', function(request, response, next, name) {
-    request.name = name;
-    next();
-})
+router.post('/login', function(request, response) {
+    user.login(request.body.email, request.body.password, response)
+});
 
-router.get('/add/:name', function(request, response) {
-    response.send("in add user: " + request.name);
+router.post('/register', function(request, response) {
+    user.register(request.body.email, request.body.password, response);
 });
 
 module.exports = {
