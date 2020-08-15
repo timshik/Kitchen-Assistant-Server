@@ -15,4 +15,4 @@ module.exports = {
     client: dbManager,
     mongoose: mongoose, // using to defined new Schemes
     manager: manager,   // using to send\recieve data from DB (accessable to 'collection' object)
-}
+}//"hi"
