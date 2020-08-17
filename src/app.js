@@ -1,6 +1,7 @@
 const express = require('express')
 require('./db/mongoose')
 const userRouter = require('./routers/user')
+const recipeRouter = require('./routers/recipe')
 
 
 
@@ -13,28 +14,20 @@ app.get('/', function(req, res) {
 
 app.use(express.json())
 app.use(userRouter)
+app.use(recipeRouter)
 
 app.listen(port, ()=>{
     console.log('Server is up')
 })
 
-// const User = require('./models/user')
 // const Recipe = require('./models/recipe')
-// const Tag = require('./models/tag')
-// const Ingridient = require('./models/ingridient')
-// const Instruction = require('./models/instruction')
+// const UserRecipeConnection = require('./models/userrecipeconnection')
+// const main = async()=>{
+//     const userrecipes =await UserRecipeConnection.findOne({user:'5f3979483bd67a4e60481dbf'})
+//     console.log(userrecipes)
+//      await userrecipes.populate('recipe').execPopulate()
+//     console.log(userrecipes)
 
-// const test = async(tag,ingridient,instruction)=>{
-//     const tag1 = new Tag(tag)
-//    // const ingridient1 = new Ingridient(ingridient)
-//     //const instruction1 = new Instruction(instruction)
-//     //await tag1.save()
-//     //await ingridient1.save()
-//     await instruction1.save()
-//     console.log(ingridient1)
-//     console.log(tag1)
-//     console.log(instruction1)
 // }
-// test()
-
+// main()
 

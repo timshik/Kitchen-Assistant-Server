@@ -5,7 +5,7 @@ const Instruction = require('./instruction')
 const UserRecipeConnection = require('./userrecipeconnection')
 const UserRecipeRate = require('./userreciperate')
 const RecipeTagConnection = require('./recipetagconnection')
-
+const User = require('./user')
 
 const recipeSchema = new mongoose.Schema({
     title:{
@@ -28,18 +28,24 @@ const recipeSchema = new mongoose.Schema({
         type:Number,
         default: 0
     },
-    edate: {
+    edate: { // edit date
         type:Number,
         
     },
-    adate: {
+    adate: { // add date
         type:Number,
         required :true
     },
     status:{
         type: Boolean,
         default:true
+    },
+    creator:{
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: 'User'
     }
+
 })
 recipeSchema.virtual('users', {
     ref: 'UserRecipeConnection',
