@@ -3,21 +3,32 @@ const Recipe = require('../models/recipe')
 const auth = require('../middlefunctions/auth')
 const Ingridient = require('../models/ingridient')
 const router = new express.Router()
+router.post('/api/user/recipe/:recipe_id/ingridients',auth,async(req,res)=>{  // need to make this code reusble later
+    for(let i=0;i<req.body.length;i++){
+        const ingridient = new Ingridient({...req.body[i], owner:req.params.recipe_id})
+        try {
+            await ingridient.save()
+            res.status(201).send('succes')
 
-router.post('/api/user/recipe/:recipe_id/ingridient',auth,async(req,res)=>{
-   
-    const ingridient = new Ingridient({...req.body, owner:req.params.recipe_id})
-    try {
-        await ingridient.save()
-        res.status(201).send('succes')
-
-    } catch (e) {
-        res.status(400).send(e)
+        } catch (e) {
+          res.status(400).send(e)
+        }
     }
 })
+// router.post('/api/user/recipe/:recipe_id/ingridient',auth,async(req,res)=>{
+   
+//     const ingridient = new Ingridient({...req.body, owner:req.params.recipe_id})
+//     try {
+//         await ingridient.save()
+//         res.status(201).send('succes')
+
+//     } catch (e) {
+//         res.status(400).send(e)
+//     }
+// })
 router.get('/api/user/recipe/:recipe_id/ingridients', auth, async (req, res) => {
     try {
-        console.log(req.params.recipe_id)
+        
         const recipe = await Recipe.findById(req.params.recipe_id)
         await recipe.populate('ingridients').execPopulate()
         res.send(recipe.ingridients)
@@ -47,7 +58,7 @@ router.patch('/api/user/recipe/:recipe_id/ingridient/:ingridient_id', auth, asyn
     const recipe_id = req.params.recipe_id
     const ingridient_id = req.params.ingridient_id
     const updates = Object.keys(req.body)
-    const allowedUpdates = ['title','description', 'amount','unit']
+    const allowedUpdates = ['title','description', 'amount','unit','priority']
     const isValidOperation = updates.every((update) => allowedUpdates.includes(update))
 
     if (!isValidOperation) {

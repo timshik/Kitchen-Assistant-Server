@@ -19,6 +19,12 @@ const ingredientSchema = mongoose.Schema({
         enum : ['piece','kilos','grams','spoons'],// needs to change acoording to the app
         default: 'pieces'
     },
+    priority:{
+        type:Number,
+        min:1,
+        required:true
+
+    },
     owner: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,

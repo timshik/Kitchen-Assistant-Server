@@ -11,6 +11,12 @@ const instructionSchema = mongoose.Schema({
     time:{
         type:Number
     },
+    priority:{
+        type:Number,
+        min:1,
+        required:true
+
+    },
     owner: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
@@ -18,6 +24,6 @@ const instructionSchema = mongoose.Schema({
     }
 
 })
-
+//instructionSchema.index({description:1,owner:1},{unique:true})
 const Instruction = mongoose.model('Instruction',instructionSchema)
 module.exports = Instruction

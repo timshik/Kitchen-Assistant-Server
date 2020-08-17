@@ -4,6 +4,9 @@ const userRouter = require('./routers/user')
 const recipeRouter = require('./routers/recipe')
 const ingridientRouter = require('./routers/ingridient')
 const instructionRouter = require('./routers/instruction')
+const userreciperateRouter = require('./routers/userrecipesrate')
+const UserRecipeConnectionRouter = require('./routers/userrecipeconnection')
+
 
 const app = express()
 const port = process.env.PORT || 3000
@@ -17,18 +20,23 @@ app.use(userRouter)
 app.use(recipeRouter)
 app.use(ingridientRouter)
 app.use(instructionRouter)
+app.use(userreciperateRouter)
+app.use(UserRecipeConnectionRouter)
 app.listen(port, ()=>{
     console.log('Server is up')
 })
 
-// const Recipe = require('./models/recipe')
-// const UserRecipeConnection = require('./models/userrecipeconnection')
-// const main = async()=>{
-//     const userrecipes =await UserRecipeConnection.findOne({user:'5f3979483bd67a4e60481dbf'})
-//     console.log(userrecipes)
-//      await userrecipes.populate('recipe').execPopulate()
-//     console.log(userrecipes)
+//const Recipe = require('./models/recipe')
+//const UserRecipeRate = require('./models/userreciperate')
 
-// }
-// main()
+//     async function getRating(recipe_id){ 
+//         const userRecipeRate = await UserRecipeRate.find({user,recipe})
+//     const avg = 0
+//     userRecipeRate.forEach((rate)=>{
+//         avg = avg + rate.rate
+//     })
+//    avg = avg / userRecipeRate.length
+//    console.log(avg)
+//         }
+// getRating('5f3979483bd67a4e60481dbf','5f3a5055c9674a5be0354eba')
 

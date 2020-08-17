@@ -4,26 +4,27 @@ const auth = require('../middlefunctions/auth')
 const Instruction = require('../models/instruction')
 const router = new express.Router()
 
-router.post('/api/user/recipe/:recipe_id/instruction',auth,async(req,res)=>{  
-   
-    const instruction = new Instruction({...req.body, owner:req.params.recipe_id})
-    try {
-        await instruction.save()
-        res.status(201).send('succes')
-
-    } catch (e) {
-        res.status(400).send(e)
+router.post('/api/user/recipe/:recipe_id/instructions',auth,async(req,res)=>{  
+    for(let i=0;i<req.body.length;i++){
+        const instruction = new Instruction({...req.body[i], owner:req.params.recipe_id})
+        try {
+            await instruction.save()
+            res.status(201).send('succes')
+            console.log("hi")
+        } catch (e) {
+            res.status(400).send(e)
+        }
     }
 })
-router.get('/api/user/recipe/:recipe_id/instructions', auth, async (req, res) => {
-    try {
-        const recipe = await Recipe.findById(req.params.recipe_id)
-        await recipe.populate('instructions').execPopulate()
-        res.send(recipe.instructions)
-    } catch (e) {
-        res.status(500).send()
-    }
-})
+// router.get('/api/user/recipe/:recipe_id/instructions', auth, async (req, res) => {
+//     try {
+//         const recipe = await Recipe.findById(req.params.recipe_id)
+//         await recipe.populate('instructions').execPopulate()
+//         res.send(recipe.instructions)
+//     } catch (e) {
+//         res.status(500).send()
+//     }
+// })
 
 router.get('/api/user/recipe/:recipe_id/instruction/:instruction_id', auth, async (req, res) => {
     const recipe_id = req.params.recipe_id
@@ -45,7 +46,7 @@ router.patch('/api/user/recipe/:recipe_id/instruction/:instruction_id', auth, as
     const recipe_id = req.params.recipe_id
     const instruction_id = req.params.instruction_id
     const updates = Object.keys(req.body)
-    const allowedUpdates = ['description', 'specialNotes','time']
+    const allowedUpdates = ['description', 'specialNotes','time','priority']
     const isValidOperation = updates.every((update) => allowedUpdates.includes(update))
 
     if (!isValidOperation) {
