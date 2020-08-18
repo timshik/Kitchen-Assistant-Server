@@ -52,6 +52,11 @@ const userSchema = new mongoose.Schema({
     }]
 })
 
+userSchema.virtual('recepiesCreated', {
+    ref: 'Recipe',
+    localField: '_id',
+    foreignField: 'creator'
+})
 userSchema.virtual('recepies', {
     ref: 'UserRecipeConnection',
     localField: '_id',

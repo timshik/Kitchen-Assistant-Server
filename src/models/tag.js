@@ -5,6 +5,7 @@ const RecipeTagConnection = require('./recipetagconnection')
 const tagSchema =mongoose.Schema( {
     title: {
         type: String,
+        unique: true,
         required:true,
         maxlength: 50
     }
