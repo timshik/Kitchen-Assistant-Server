@@ -8,12 +8,13 @@ router.post('/api/user/recipe/:recipe_id/ingridients',auth,async(req,res)=>{  //
         const ingridient = new Ingridient({...req.body[i], owner:req.params.recipe_id})
         try {
             await ingridient.save()
-            res.status(201).send('succes')
+            
 
         } catch (e) {
-          res.status(400).send(e)
+          return res.status(400).send(e)
         }
     }
+    res.status(201).send('succes')
 })
 // router.post('/api/user/recipe/:recipe_id/ingridient',auth,async(req,res)=>{
    
@@ -37,7 +38,7 @@ router.get('/api/user/recipe/:recipe_id/ingridients', auth, async (req, res) => 
     }
 })
 
-router.get('/api/user/recipe/:recipe_id/ingridient/:ingridient_id', auth, async (req, res) => {
+router.get('/api/user/recipe/:recipe_id/ingridients/:ingridient_id', auth, async (req, res) => {
     const recipe_id = req.params.recipe_id
     const ingridient_id = req.params.ingridient_id
     try {
@@ -54,7 +55,7 @@ router.get('/api/user/recipe/:recipe_id/ingridient/:ingridient_id', auth, async 
     }
 })
 
-router.patch('/api/user/recipe/:recipe_id/ingridient/:ingridient_id', auth, async (req, res) => {
+router.patch('/api/user/recipe/:recipe_id/ingridients/:ingridient_id', auth, async (req, res) => {
     const recipe_id = req.params.recipe_id
     const ingridient_id = req.params.ingridient_id
     const updates = Object.keys(req.body)
@@ -80,11 +81,11 @@ router.patch('/api/user/recipe/:recipe_id/ingridient/:ingridient_id', auth, asyn
     }
 })
 
-router.delete('/api/user/recipe/:recipe_id/ingridient/:ingridient_id', auth, async (req, res) => {
+router.delete('/api/user/recipe/:recipe_id/ingridients/:ingridient_id', auth, async (req, res) => {
     const recipe_id = req.params.recipe_id
     const ingridient_id = req.params.ingridient_id
     try {
-        const ingridient = await Ingridient.findOneAndDelete({ _id: recipe_id, owner: ingridient_id })
+        const ingridient = await Ingridient.findOneAndDelete({ _id:ingridient_id , owner:recipe_id  })
 
         if (!ingridient) {
             res.status(404).send()

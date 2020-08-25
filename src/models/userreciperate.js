@@ -18,34 +18,49 @@ const userRecipeRateSchema = mongoose.Schema({
         max: 5
     }
 })
-userRecipeRateSchema.methods.updateRating = async function (){  // update rating of a recipe every time,not checke yet
+userRecipeRateSchema.methods.updateRating = async function (){  
+    console.log('hi')
     const userRecipeRate = await UserReciperate.find({recipe:this.recipe})
+    
     let avg = 0
     userRecipeRate.forEach((rate)=>{
         avg = avg + rate.rate
     })
-   avg = avg / userRecipeRate.length
-   console.log(avg)
-   console.log(this.recipe)
+   avg = avg / (userRecipeRate.length)
+   
    const recipe = await Recipe.findById(this.recipe)
-   console.log(recipe)
    recipe['rate'] = avg
    await recipe.save()
-
+   
 }
-userRecipeRateSchema.pre('save', async function (next) {
-    this.updateRating()
-     next()
-})
-userRecipeRateSchema.pre('remove', async function (next) {
+userRecipeRateSchema.post('save', async function (next) {
     await this.updateRating()
-    next()
+     
 })
-userRecipeRateSchema.pre('update', async function (next) {
+userRecipeRateSchema.pre('remove', async function (next) {  // not working the function isnt called before deleting 
+await this.updateRating()})
+    //     console.log('hi')
+//     const userRecipeRate = await UserReciperate.find({recipe:this.recipe})
+    
+//     let avg = 0
+//     if(!userRecipeRate.length == 1){
+//         userRecipeRate.forEach((rate)=>{
+//             avg = avg + rate.rate
+//         })
+//        avg = avg-this.rate / (userRecipeRate.length-1)
+//     }
+//     console.log(avg)
+//    const recipe = await Recipe.findById(this.recipe)
+//    recipe['rate'] = avg
+//    await recipe.save()
+//    next()
+    
+//})
+userRecipeRateSchema.post('update', async function (next) {
     await this.updateRating()
-     next()
+     
 })
-
+userRecipeRateSchema.index({user:1,recipe:1,},{unique:true})
 const UserReciperate = mongoose.model('UserRecipeRate',userRecipeRateSchema)
 
 module.exports = UserReciperate

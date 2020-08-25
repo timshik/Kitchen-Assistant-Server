@@ -10,12 +10,15 @@ const tagSchema =mongoose.Schema( {
         maxlength: 50
     }
 })
-tagSchema.virtual('recepies', {
+tagSchema.virtual('recipes', {
     ref: 'RecipeTagConnection',
     localField: '_id',
     foreignField: 'tag'
 })
-
+tagSchema.statics.findTagByName = async function(name){
+    tag = await Tag.findOne({title:name})
+    return tag
+}
 tagSchema.pre('remove', async function (next) {
     const tag = this
     await RecipeTagConnection.deleteMany({ tag: tag._id })
