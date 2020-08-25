@@ -9,24 +9,25 @@ router.post('/api/user/recipe/:recipe_id/instructions',auth,async(req,res)=>{
         const instruction = new Instruction({...req.body[i], owner:req.params.recipe_id})
         try {
             await instruction.save()
-            res.status(201).send('succes')
-            console.log("hi")
+            
+            
         } catch (e) {
-            res.status(400).send(e)
+            return res.status(400).send(e)
         }
     }
+    res.status(201).send('succes')
 })
-// router.get('/api/user/recipe/:recipe_id/instructions', auth, async (req, res) => {
-//     try {
-//         const recipe = await Recipe.findById(req.params.recipe_id)
-//         await recipe.populate('instructions').execPopulate()
-//         res.send(recipe.instructions)
-//     } catch (e) {
-//         res.status(500).send()
-//     }
-// })
+router.get('/api/user/recipe/:recipe_id/instructions', auth, async (req, res) => {
+    try {
+        const recipe = await Recipe.findById(req.params.recipe_id)
+        await recipe.populate('instructions').execPopulate()
+        res.send(recipe.instructions)
+    } catch (e) {
+        res.status(500).send()
+    }
+})
 
-router.get('/api/user/recipe/:recipe_id/instruction/:instruction_id', auth, async (req, res) => {
+router.get('/api/user/recipe/:recipe_id/instructions/:instruction_id', auth, async (req, res) => {
     const recipe_id = req.params.recipe_id
     const instruction_id = req.params.instruction_id
     try {
@@ -42,7 +43,7 @@ router.get('/api/user/recipe/:recipe_id/instruction/:instruction_id', auth, asyn
     }
 })
 
-router.patch('/api/user/recipe/:recipe_id/instruction/:instruction_id', auth, async (req, res) => {
+router.patch('/api/user/recipe/:recipe_id/instructions/:instruction_id', auth, async (req, res) => {
     const recipe_id = req.params.recipe_id
     const instruction_id = req.params.instruction_id
     const updates = Object.keys(req.body)
@@ -68,7 +69,7 @@ router.patch('/api/user/recipe/:recipe_id/instruction/:instruction_id', auth, as
     }
 })
 
-router.delete('/api/user/recipe/:recipe_id/instruction/:instruction_id', auth, async (req, res) => {
+router.delete('/api/user/recipe/:recipe_id/instructions/:instruction_id', auth, async (req, res) => {
     const recipe_id = req.params.recipe_id
     const instruction_id = req.params.instruction_id
     try {

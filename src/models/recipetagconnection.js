@@ -13,7 +13,7 @@ const RecipeTagSchema = mongoose.Schema({
     
 })
 
-
+RecipeTagSchema.index({recipe:1,tag:1},{unique:true})
 const RecipeTagConnection = mongoose.model('RecipeTagConnection',RecipeTagSchema)
 
 module.exports = RecipeTagConnection

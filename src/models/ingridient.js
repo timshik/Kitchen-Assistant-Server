@@ -22,7 +22,8 @@ const ingredientSchema = mongoose.Schema({
     priority:{
         type:Number,
         min:1,
-        required:true
+        required:true,
+        unique: true
 
     },
     owner: {
@@ -31,6 +32,6 @@ const ingredientSchema = mongoose.Schema({
         ref: 'Recipe'
     }
 })
-
+ingredientSchema.index({title:1,description:1,owner:1},{unique:true})
 const Ingridient = mongoose.model('Ingridient', ingredientSchema)
 module.exports = Ingridient

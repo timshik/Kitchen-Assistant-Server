@@ -14,7 +14,8 @@ const instructionSchema = mongoose.Schema({
     priority:{
         type:Number,
         min:1,
-        required:true
+        required:true,
+        unique: true
 
     },
     owner: {
@@ -24,6 +25,6 @@ const instructionSchema = mongoose.Schema({
     }
 
 })
-//instructionSchema.index({description:1,owner:1},{unique:true})
+instructionSchema.index({description:1,specialNotes:1,owner:1},{unique:true})
 const Instruction = mongoose.model('Instruction',instructionSchema)
 module.exports = Instruction

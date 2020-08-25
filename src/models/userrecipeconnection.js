@@ -19,7 +19,7 @@ const userRecipeSchema = mongoose.Schema({
         type:Number
     }
 })
-
+userRecipeSchema.index({user:1,recipe:1},{unique:true})
 const UserRecipeConnection = mongoose.model('UserRecipeConnection',userRecipeSchema)
 
 module.exports = UserRecipeConnection

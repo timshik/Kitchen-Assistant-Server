@@ -6,7 +6,7 @@ const router = new express.Router()
 router.post('/api/user/recipe/:recipe_id/rate', auth, async (req, res) => {
     user_id = req.user._id
     recipe_id = req.params.recipe_id
-    
+    // we can check if the recipe exist at all, for now we trust the application
     const userRecipeRate = new UserRecipeRate({
         ...req.body,
         user: user_id,
