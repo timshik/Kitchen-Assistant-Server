@@ -2,7 +2,7 @@ const express = require('express')
 const User = require('../models/user')
 const auth = require('../middlefunctions/auth')
 const router = new express.Router()
-
+const upload = require('../middlefunctions/upload')
 router.post('/api/users', async (req, res) => {
     const user = new User(req.body)
 
@@ -80,4 +80,31 @@ router.delete('/api/users/profile', auth, async (req, res) => {
     }
 })
 
+router.post('/api/user/me/avatar',auth,upload.single('avatar'),async (req,res)=>{
+    req.user.avatar = req.file.buffer
+    await req.user.save()
+    res.send()
+}, (error, req,res,next)=>{
+    console.log(error)
+    res.status(400).send({error:error.toString()})
+})
+router.delete('/api/user/me/avatar',auth,async (req,res)=>{
+    req.user.avatar = undefined
+    await req.user.save()
+    res.send()
+})
+//no need for now
+// router.get('/api/users/:id/avatar',async (req,res)=>{
+//     try {
+//         const user = await User.findById(req.params.id)
+//         if(!user|!user.avatar){
+//             throw new Error()
+//         }
+
+//         res.set('Content-Type','image/jpg')
+//         res.send(user.avatar)
+//     } catch (error) {
+//         res.status(404).send()
+//     }
+// })
 module.exports = router
