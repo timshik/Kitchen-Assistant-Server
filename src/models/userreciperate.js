@@ -26,18 +26,22 @@ userRecipeRateSchema.methods.updateRating = async function (){
     userRecipeRate.forEach((rate)=>{
         avg = avg + rate.rate
     })
-   avg = avg / (userRecipeRate.length)
+    if(userRecipeRate.length!=0){
+        avg = avg / (userRecipeRate.length)
+    }
+    
    
    const recipe = await Recipe.findById(this.recipe)
    recipe['rate'] = avg
    await recipe.save()
+   
    
 }
 userRecipeRateSchema.post('save', async function (next) {
     await this.updateRating()
      
 })
-userRecipeRateSchema.pre('remove', async function (next) {  // not working the function isnt called before deleting 
+userRecipeRateSchema.post('remove', async function (next) {  // not working the function isnt called before deleting 
 await this.updateRating()})
     //     console.log('hi')
 //     const userRecipeRate = await UserReciperate.find({recipe:this.recipe})

@@ -1,5 +1,6 @@
 const express = require('express')
 const UserRecipeRate = require('../models/userreciperate')
+const Recipe = require('../models/recipe')
 const auth = require('../middlefunctions/auth')
 const router = new express.Router()
 
@@ -15,8 +16,8 @@ router.post('/api/user/recipe/:recipe_id/rate', auth, async (req, res) => {
 
     try {
         await userRecipeRate.save()
-        
-        res.status(201).send('succes')
+        const recipe = await Recipe.findById({ _id: recipe_id})
+        res.status(201).send({rate :recipe.rate})
     } catch (e) {
         res.status(400).send(e)
     }
@@ -48,7 +49,7 @@ router.patch('/api/user/recipe/:recipe_id/rate', auth, async (req, res) => {
     if (!isValidOperation) {
         return res.status(400).send({ error: 'Invalid updates!' })
     }
-
+    
     try {
         const rate = await UserRecipeRate.findOne({user: user_id,recipe: recipe_id})
 
@@ -58,7 +59,8 @@ router.patch('/api/user/recipe/:recipe_id/rate', auth, async (req, res) => {
 
         updates.forEach((update) => rate[update] = req.body[update])
         await rate.save()
-        res.send(rate)
+        const recipe = await Recipe.findById({ _id: recipe_id})
+        res.send({rate:recipe.rate})
     } catch (e) {
         res.status(400).send(e)
     }
@@ -73,8 +75,8 @@ router.delete('/api/user/recipe/:recipe_id/rate', auth, async (req, res) => {
         if (!rate) {
             res.status(404).send()
         }
-
-        res.send('succes')
+        const recipe = await Recipe.findById({ _id: recipe_id})
+        res.send({rate:recipe.rate})
     } catch (e) {
         res.status(500).send()
     }
