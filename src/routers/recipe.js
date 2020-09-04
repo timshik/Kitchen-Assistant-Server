@@ -5,6 +5,7 @@ const RecipeTagConnection = require('../models/recipetagconnection')
 const auth = require('../middlefunctions/auth')
 const Ingridient = require('../models/ingridient')
 const Tag = require('./../models/tag')
+const upload = require('../middlefunctions/upload')
 const router = new express.Router()
 // for the search
 var TfIdf = require('node-tfidf');
@@ -114,7 +115,7 @@ router.patch('/api/user/recipes/:recipe_id',auth,async(req,res)=>{
 router.delete('/api/user/recipes/:recipe_id',auth, async(req,res)=>{
    
     try {
-        const recipe = await Recipe.findOne({ _id: req.params.recipe_id, creator: req.user._id})
+        const recipe = await Recipe.findOneAndDelete({ _id: req.params.recipe_id, creator: req.user._id})
       
         if (!recipe) {
             res.status(404).send()
@@ -133,43 +134,82 @@ router.get('/api/community/search/recipe',async (req,res)=>{ // need to decide w
         
         recipes = await Recipe.find({})
         for(let i =0 ;i<recipes.length;i++){
-            let content = []
-            const fullRecipe = await Recipe.findFullDetails(recipes[i]._id) 
-            content = content.concat(fullRecipe.recipe.title.split(' '))
-            content = content.concat(fullRecipe.recipe.description.split(' '))
-            fullRecipe.ingridients.forEach((ingridient)=>{
-                content = content.concat(ingridient.title.split(' '))
-                content = content.concat(ingridient.description.split(' '))
-
-            })
-            fullRecipe.instructions.forEach((instruction)=>{
-                content = content.concat(instruction.description.split(' '))
-                content = content.concat(instruction.specialNotes.split(' '))
-            })
-            fullRecipe.tags.forEach((tag)=>{
-                content.concat(tag.title.split(' '))
-            })
+            let content = await parseRecipe(recipes[i],[{        // parseRecipe will parse to array of strings every recipe by the collection you send and the fields of each collection, the body of the recipe itself will be parsed automatically with the fields title and description
+                collection:'ingridients',
+                fields:['title','description']
+            },{
+                collection:'instructions',
+                fields:['description','specialNotes']
+            },{
+                collection:'tags',
+                fields:['title']
+            }]
+            )
             tfidf.addDocument(content)
-            console.log(content)
         }
         let result = []
         tfidf.tfidfs(query, function(i, measure) {
             result.push({recipe:recipes[i], score: measure})
-            console.log('document #' + i + ' is ' + measure);
         });
-        console.log(result)
         result.sort(compare)
-        
         res.send(result)
     } catch (error) {
         res.status(500).send()
     }
 })
+router.post('/api/recipe/:recipe_id/image',auth,upload.single('image'),async (req,res)=>{
+    const recipe = await Recipe.findOne({ _id: req.params.recipe_id, creator: req.user._id})
+
+    if (!recipe) {
+        return res.status(404).send()
+    }
+    recipe.image = req.file.buffer    
+    await recipe.save()
+    res.send()
+}, (error, req,res,next)=>{
+    console.log(error)
+    res.status(400).send({error:error.toString()})
+})
+router.delete('/api/recipe/:recipe_id/image',auth,async (req,res)=>{
+    const recipe = await Recipe.findOne({ _id: req.params.recipe_id, creator: req.user._id})
+
+    if (!recipe) {
+        return res.status(404).send()
+    }
+       recipe.image = undefined
+    await recipe.save()
+    res.send()
+})
 ////////////////// helper functions
 
-const parseRecipe = (recipe)=>{
-    
+const parseRecipe =async (recipe,obj)=>{
+    try {
+    const fullRecipe = await Recipe.findFullDetails(recipe._id) 
+    let content =  await parsecollections([fullRecipe.recipe],['title','description'])
+    for(let i =0 ;i<obj.length;i++)
+    {
+        let parsedCollection = await parsecollections(fullRecipe[obj[i].collection],obj[i].fields)
+        content = content.concat(parsedCollection)
+    }
+    return content
+    } catch (error) {
+        throw new Error
+    }
 }
+
+const parsecollections = async(collections,fields)=>{
+    let content = []
+    if(collections){
+        collections.forEach((collections)=>{
+            fields.forEach((field)=>{
+               content = content.concat(collections[field].split(' '))
+            })
+        })
+    }
+    return content
+}
+
+
 function compare( a, b ) {
     if ( a.score > b.score ){
       return -1;
@@ -182,3 +222,18 @@ function compare( a, b ) {
   
   
 module.exports = router
+
+
+
+
+
+
+ 
+    // let parsedIngridients = await parsecollections(fullRecipe.ingridients,['title','description'])
+    // let parsedInstructions = await parsecollections(fullRecipe.instructions,['description','specialNotes'])
+    // let parsedTags = await parsecollections(fullRecipe.tags,['title'])
+    
+    // content = content.concat(parsedRecipe)
+    // content =  content.concat(parsedIngridients)
+    // content =  content.concat(parsedInstructions)
+    // content = content.concat(parsedTags)
