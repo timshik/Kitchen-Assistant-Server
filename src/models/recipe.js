@@ -51,6 +51,12 @@ const recipeSchema = new mongoose.Schema({
     }
 
 })
+userSchema.methods.toJSON = function () {
+    const recipe = this
+    const recipeObject = user.toObject()
+    return recipeObject
+}
+
 recipeSchema.virtual('users', {
     ref: 'UserRecipeConnection',
     localField: '_id',

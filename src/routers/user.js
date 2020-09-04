@@ -93,6 +93,9 @@ router.delete('/api/user/me/avatar',auth,async (req,res)=>{
     await req.user.save()
     res.send()
 })
+// router.post('/test',async (req,res)=>{
+
+// })
 //no need for now
 // router.get('/api/users/:id/avatar',async (req,res)=>{
 //     try {
