@@ -51,9 +51,9 @@ const recipeSchema = new mongoose.Schema({
     }
 
 })
-userSchema.methods.toJSON = function () {
+recipeSchema.methods.toJSON = function () {
     const recipe = this
-    const recipeObject = user.toObject()
+    const recipeObject = recipe.toObject()
     return recipeObject
 }
 
