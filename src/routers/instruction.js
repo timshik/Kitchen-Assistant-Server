@@ -15,7 +15,9 @@ router.post('/api/user/recipe/:recipe_id/instructions',auth,async(req,res)=>{
             return res.status(400).send(e)
         }
     }
-    res.status(201).send('succes')
+    
+    const time = await Recipe.updateTotalTime(req.params.recipe_id)
+    res.status(201).send({time})
 })
 router.get('/api/user/recipe/:recipe_id/instructions', auth, async (req, res) => {
     try {
@@ -63,7 +65,8 @@ router.patch('/api/user/recipe/:recipe_id/instructions/:instruction_id', auth, a
 
         updates.forEach((update) => instruction[update] = req.body[update])
         await instruction.save()
-        res.send(instruction)
+        const time = await Recipe.updateTotalTime(req.params.recipe_id)
+        res.send({instruction,time})
     } catch (e) {
         res.status(400).send(e)
     }
@@ -80,7 +83,8 @@ router.delete('/api/user/recipe/:recipe_id/instructions/:instruction_id', auth, 
             res.status(404).send()
         }
 
-        res.send(instruction)
+        const time = await Recipe.updateTotalTime(req.params.recipe_id)
+        res.send({instruction,time})
     } catch (e) {
         res.status(500).send()
     }

@@ -120,6 +120,21 @@ recipeSchema.statics.findFullDetails = async (recipe_id) => {
     }catch(e){
         throw new Error(e)
     }
+    
+}
+recipeSchema.statics.updateTotalTime = async function (recipe_id){  
+    const instructions = await Instruction.find({owner:recipe_id})
+    const recipe =await Recipe.findById(recipe_id)
+    console.log(instructions)
+    let sum = 0
+    instructions.forEach((instruction)=>{
+        sum = sum + instruction.time
+    })
+   console.log(sum)
+   console.log(recipe)
+   recipe['totalTime'] = sum
+   await recipe.save()
+   return sum
 }
 const Recipe = mongoose.model('Recipe', recipeSchema)
 module.exports = Recipe   
