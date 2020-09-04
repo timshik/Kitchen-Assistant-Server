@@ -1,4 +1,5 @@
 const mongoose = require('../db/mongoose').mongoose
+const Recipe = require('./recipe')
 const instructionSchema = mongoose.Schema({
     description: {
         type: String,
@@ -15,7 +16,7 @@ const instructionSchema = mongoose.Schema({
         type:Number,
         min:1,
         required:true,
-        unique: true
+        
 
     },
     owner: {
@@ -25,6 +26,10 @@ const instructionSchema = mongoose.Schema({
     }
 
 })
+
+
+
+instructionSchema.index({priority:1,owner:1},{unique:true})
 instructionSchema.index({description:1,specialNotes:1,owner:1},{unique:true})
 const Instruction = mongoose.model('Instruction',instructionSchema)
 module.exports = Instruction
