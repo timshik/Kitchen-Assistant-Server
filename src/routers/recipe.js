@@ -220,8 +220,7 @@ function compare( a, b ) {
     return 0;
   }
   
-  
-  module.exports = router
+module.exports = router
 
 
 
