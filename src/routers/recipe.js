@@ -47,7 +47,9 @@ router.get('/api/user/recipes',auth,async(req,res)=>{
 })
 router.get('/api/community/recipes',auth,async (req,res)=>{
     try {
-        recipes = await Recipe.find({}).limit(10)
+        let limit = req.body.limit;
+        let page = req.body.page;
+        recipes = await Recipe.find({}).limit(limit).skip(page)
         res.status(200).send(recipes)
     } catch (error) {
         res.status(500).send(error)
