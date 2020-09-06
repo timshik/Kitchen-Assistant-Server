@@ -47,9 +47,9 @@ router.get('/api/user/recipes',auth,async(req,res)=>{
 })
 router.get('/api/community/recipes',auth,async (req,res)=>{
     try {
-        let limit = req.body.limit;
-        let page = req.body.page;
-        recipes = await Recipe.find({}).limit(limit).skip(page)
+        let limit = req.query.limit === undefined ? 10 : Number(req.query.limit);
+        let page = req.query.page === undefined ? 1 : Number(req.query.page);
+        recipes = await Recipe.find({}).limit(limit).skip(limit * page)
         res.status(200).send(recipes)
     } catch (error) {
         res.status(500).send(error)
@@ -133,9 +133,11 @@ router.get('/api/community/search/recipe',async (req,res)=>{ // need to decide w
     const query = req.query.search
     var tfidf = new TfIdf();
     try {
-        
+        let limit = req.query.limit === undefined ? 10 : Number(req.query.limit);
+        let page = req.query.page === undefined ? 1 : Number(req.query.page);
+
         recipes = await Recipe.find({})
-        for(let i =0 ;i<recipes.length;i++){
+        for(let i =0; i < recipes.length ; i++){
             let content = await parseRecipe(recipes[i],[{        // parseRecipe will parse to array of strings every recipe by the collection you send and the fields of each collection, the body of the recipe itself will be parsed automatically with the fields title and description
                 collection:'ingridients',
                 fields:['title','description']
@@ -154,9 +156,9 @@ router.get('/api/community/search/recipe',async (req,res)=>{ // need to decide w
             result.push({recipe:recipes[i], score: measure})
         });
         result.sort(compare)
-        res.send(result)
+        res.send(result.slice((page - 1) * limit, page * limit))
     } catch (error) {
-        res.status(500).send()
+        res.status(500).send(error.toString())
     }
 })
 router.post('/api/recipe/:recipe_id/image',auth,upload.single('image'),async (req,res)=>{
@@ -188,23 +190,28 @@ const parseRecipe =async (recipe,obj)=>{
     try {
     const fullRecipe = await Recipe.findFullDetails(recipe._id) 
     let content =  await parsecollections([fullRecipe.recipe],['title','description'])
-    for(let i =0 ;i<obj.length;i++)
-    {
+
+    for(let i =0 ;i<obj.length;i++) {
         let parsedCollection = await parsecollections(fullRecipe[obj[i].collection],obj[i].fields)
         content = content.concat(parsedCollection)
     }
+
     return content
     } catch (error) {
-        throw new Error
+        throw new Error(error)
     }
 }
 
+let i = 0;
+
 const parsecollections = async(collections,fields)=>{
     let content = []
-    if(collections){
+    if(collections != null){
         collections.forEach((collections)=>{
             fields.forEach((field)=>{
-               content = content.concat(collections[field].split(' '))
+                if (collections !=null && field != null && field != undefined && collections[field] != undefined && collections[field] != null) {
+                    content = content.concat(collections[field].split(' '))
+                }
             })
         })
     }
