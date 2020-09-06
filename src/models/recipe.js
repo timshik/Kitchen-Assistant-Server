@@ -93,34 +93,38 @@ recipeSchema.pre('remove', async function (next) {
    
     next()
 })
-recipeSchema.statics.findFullDetails = async (recipe_id) => {
-    
-    
-    try{
-        const recipe =  await Recipe.findById(recipe_id)
-        if(!recipe){
-            throw new Error('file not found') ;
+
+recipeSchema.methods.getFullDetails = async function(tags_map = null) {
+    try {
+        await this.populate('ingridients')
+                .populate('instructions')
+                .populate('tags').execPopulate()
+
+        let tags =[]
+        if (tags_map == null) {
+            for (let i = 0; i < this.tags.length; i++) {
+                tag = await Tag.findById(this.tags[i].tag)
+                tags.push(tag) 
+            }
+        } else {
+            for (let i = 0; i < this.tags.length; i++) {
+                tags.push(tags_map[this.tags[i].tag]) 
+            }
         }
         
-        await recipe.populate('ingridients').execPopulate()
-        
-        await recipe.populate('instructions').execPopulate()
-        
-        await recipe.populate('tags').execPopulate()
-        
-        
-        let tags =[]
-        for (let i = 0; i < recipe.tags.length; i++) {
-         
-         tag = await Tag.findById(recipe.tags[i].tag)
-         tags.push(tag) 
-       }
-      
-       return ({recipe,ingridients:recipe.ingridients,instructions:recipe.instructions,tags}) //tags:tags
+        return ({recipe: this, ingridients:this.ingridients, instructions:this.instructions, tags}) //tags:tags
     }catch(e){
         throw new Error(e)
-    }
-    
+    } 
+}
+
+recipeSchema.statics.findFullDetails = async (recipe_id) => {
+        const recipe = await Recipe.findById(recipe_id)
+        if (recipe != null) {
+            return await recipe.getFullDetails();
+        }
+
+        throw new Error("RECIPE_NOT_EXISTS");
 }
 recipeSchema.statics.updateTotalTime = async function (recipe_id){  
     const instructions = await Instruction.find({owner:recipe_id})

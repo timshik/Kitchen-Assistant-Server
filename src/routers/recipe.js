@@ -137,7 +137,12 @@ router.get('/api/community/search/recipe',async (req,res)=>{ // need to decide w
         let page = req.query.page === undefined ? 1 : Number(req.query.page);
 
         recipes = await Recipe.find({})
-        for(let i =0; i < recipes.length ; i++){
+        let tags = await Tag.find({})
+        const tags_map = new Map();
+        tags.forEach((tag) => {
+            tags_map[tag._id] = tag.title;
+        });
+        for(let i = 0; i < 8; i++){
             let content = await parseRecipe(recipes[i],[{        // parseRecipe will parse to array of strings every recipe by the collection you send and the fields of each collection, the body of the recipe itself will be parsed automatically with the fields title and description
                 collection:'ingridients',
                 fields:['title','description']
@@ -147,10 +152,11 @@ router.get('/api/community/search/recipe',async (req,res)=>{ // need to decide w
             },{
                 collection:'tags',
                 fields:['title']
-            }]
-            )
+            }],
+            tags_map)
             tfidf.addDocument(content)
         }
+
         let result = []
         tfidf.tfidfs(query, function(i, measure) {
             result.push({recipe:recipes[i], score: measure})
@@ -186,17 +192,17 @@ router.delete('/api/recipe/:recipe_id/image',auth,async (req,res)=>{
 })
 ////////////////// helper functions
 
-const parseRecipe =async (recipe,obj)=>{
+const parseRecipe = async (recipe, obj, tags_map)=>{
     try {
-    const fullRecipe = await Recipe.findFullDetails(recipe._id) 
-    let content =  await parsecollections([fullRecipe.recipe],['title','description'])
+        const fullRecipe = await recipe.getFullDetails(tags_map);
+        let content =  await parsecollections([fullRecipe.recipe],['title','description'])
 
-    for(let i =0 ;i<obj.length;i++) {
-        let parsedCollection = await parsecollections(fullRecipe[obj[i].collection],obj[i].fields)
-        content = content.concat(parsedCollection)
-    }
+        for(let i =0 ;i<obj.length;i++) {
+            let parsedCollection = await parsecollections(fullRecipe[obj[i].collection],obj[i].fields)
+            content = content.concat(parsedCollection)
+        }
 
-    return content
+        return content
     } catch (error) {
         throw new Error(error)
     }
@@ -223,7 +229,7 @@ function compare( a, b ) {
     if ( a.score > b.score ){
       return -1;
     }
-    if (  a.score > b.score  ){
+    if (  a.score < b.score  ){
       return 1;
     }
     return 0;
