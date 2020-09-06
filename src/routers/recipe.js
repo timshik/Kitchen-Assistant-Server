@@ -22,7 +22,7 @@ router.post('/api/user/recipes',auth, async(req,res)=>{
             recipe: recipe._id
         })
         await userRecipeConnection.save()
-        res.status(201).send('succes')
+        res.status(201).send(recipe)
     } catch (e) {
         res.status(400).send(e)
     }
