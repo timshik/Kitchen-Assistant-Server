@@ -142,7 +142,7 @@ router.get('/api/community/search/recipe',async (req,res)=>{ // need to decide w
         tags.forEach((tag) => {
             tags_map[tag._id] = tag.title;
         });
-        for(let i = 0; i < 8; i++){
+        for(let i = 0; i < recipes.length; i++){
             let content = await parseRecipe(recipes[i],[{        // parseRecipe will parse to array of strings every recipe by the collection you send and the fields of each collection, the body of the recipe itself will be parsed automatically with the fields title and description
                 collection:'ingridients',
                 fields:['title','description']
@@ -154,6 +154,8 @@ router.get('/api/community/search/recipe',async (req,res)=>{ // need to decide w
                 fields:['title']
             }],
             tags_map)
+            
+            
             tfidf.addDocument(content)
         }
 
@@ -162,7 +164,8 @@ router.get('/api/community/search/recipe',async (req,res)=>{ // need to decide w
             result.push({recipe:recipes[i], score: measure})
         });
         result.sort(compare)
-        res.send(result.slice((page - 1) * limit, page * limit))
+        result = result.slice((page - 1) * limit, page * limit).map((obj)=> obj.recipe)
+        res.send(result)
     } catch (error) {
         res.status(500).send(error.toString())
     }
@@ -216,7 +219,7 @@ const parsecollections = async(collections,fields)=>{
         collections.forEach((collections)=>{
             fields.forEach((field)=>{
                 if (collections !=null && field != null && field != undefined && collections[field] != undefined && collections[field] != null) {
-                    content = content.concat(collections[field].split(' '))
+                    content = content.concat(collections[field].split(' ').map((name) =>clean(name))) 
                 }
             })
         })
@@ -234,7 +237,14 @@ function compare( a, b ) {
     }
     return 0;
   }
-  
+  function clean(name){
+      name = name.toLowerCase()
+      const regex = /[.,()\s]/g;
+
+      const result = name.replace(regex, '');
+
+      return result
+  }
 module.exports = router
 
 
