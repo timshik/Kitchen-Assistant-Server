@@ -23,6 +23,7 @@
         "multer": "^1.4.1",
         "mysql": "^2.18.1",
         "node-tfidf": "0.0.2",
+        "tfidf": "^0.2.2",
         "validator": "^13.1.1"
     }
 }
