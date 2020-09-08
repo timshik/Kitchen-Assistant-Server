@@ -6,6 +6,7 @@ const auth = require('../middlefunctions/auth')
 const Ingridient = require('../models/ingridient')
 const Tag = require('./../models/tag')
 const upload = require('../middlefunctions/upload')
+var imgur = require('imgur')
 const router = new express.Router()
 // for the search
 var TfIdf = require('node-tfidf');
@@ -14,7 +15,9 @@ const { result } = require('underscore');
 
 router.post('/api/user/recipes',auth, async(req,res)=>{
     const recipe = new Recipe({...req.body, creator: req.user._id})
-        
+    if(req.body.image){
+        recipe.image = await getUrlFromBase64(req.body.image)
+    }
     try {
         await recipe.save()
         const userRecipeConnection = new UserRecipeConnection({
@@ -170,13 +173,16 @@ router.get('/api/community/search/recipe',async (req,res)=>{ // need to decide w
         res.status(500).send(error.toString())
     }
 })
-router.post('/api/recipe/:recipe_id/image',auth,upload.single('image'),async (req,res)=>{
+router.post('/api/recipe/:recipe_id/image',auth,async (req,res)=>{   //upload.single('image'),
     const recipe = await Recipe.findOne({ _id: req.params.recipe_id, creator: req.user._id})
 
     if (!recipe) {
         return res.status(404).send()
     }
-    recipe.image = req.file.buffer    
+    console.log(recipe)
+    recipe.image = await getUrlFromBase64(req.body.image)
+    console.log(recipe)
+    //recipe.image = req.file.buffer    
     await recipe.save()
     res.send()
 }, (error, req,res,next)=>{
@@ -245,6 +251,18 @@ function compare( a, b ) {
 
       return result
   }
+
+  const getUrlFromBase64 = async function(base64){
+    var url;
+    await imgur.uploadBase64(base64)
+    .then(function (json) {
+        url = json.data.link;
+    })
+    .catch(function (err) {
+        console.error(err.message);
+    });
+    return url
+   }
 module.exports = router
 
 
