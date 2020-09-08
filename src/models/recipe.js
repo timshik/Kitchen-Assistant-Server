@@ -47,7 +47,7 @@ const recipeSchema = new mongoose.Schema({
         ref: 'User'
     },
     image:{
-        type:Buffer
+        type:String
     }
 
 })
