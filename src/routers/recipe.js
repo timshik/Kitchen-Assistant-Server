@@ -65,7 +65,6 @@ router.get('/api/user/recipes/:recipe_id',auth,async(req,res)=>{
         const result = await Recipe.findFullDetails(recipe_id)
         res.status(200).send(result)
     } catch (error) {
-        console.log(Error)
         res.status(500).send(error)
     }
 //    try{
@@ -179,14 +178,11 @@ router.post('/api/recipe/:recipe_id/image',auth,async (req,res)=>{   //upload.si
     if (!recipe) {
         return res.status(404).send()
     }
-    console.log(recipe)
     recipe.image = await getUrlFromBase64(req.body.image)
-    console.log(recipe)
-    //recipe.image = req.file.buffer    
+     //recipe.image = req.file.buffer    
     await recipe.save()
     res.send()
 }, (error, req,res,next)=>{
-    console.log(error)
     res.status(400).send({error:error.toString()})
 })
 router.delete('/api/recipe/:recipe_id/image',auth,async (req,res)=>{
