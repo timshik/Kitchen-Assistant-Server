@@ -1,4 +1,5 @@
 const express = require('express')
+const formidable = require('express-formidable');
 require('./db/mongoose')
 const userRouter = require('./routers/user')
 const recipeRouter = require('./routers/recipe')
@@ -29,5 +30,5 @@ app.listen(port, ()=>{
     console.log('Server is up')
 })
 
-
-
+// Multipart form handle:
+app.use(formidable());
