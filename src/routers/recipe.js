@@ -84,33 +84,9 @@ router.get('/api/user/recipes/:recipe_id',auth,async(req,res)=>{
         const result = await Recipe.findFullDetails(recipe_id)
         res.status(200).send(result)
     } catch (error) {
-        console.log(Error)
         res.status(500).send(error)
     }
-//    try{
-//        const recipe =  await Recipe.findById(recipe_id)
-//        if(!recipe){
-//            return res.status(404).send()
-//        }
-       
-//        await recipe.populate('ingridients').execPopulate()
-       
-//        await recipe.populate('instructions').execPopulate()
-       
-//        await recipe.populate('tags').execPopulate()
-//        //let tagIds = await RecipeTagConnection.find({recipe: recipe_id})
-       
-//        let tags =[]
-//        for (let i = 0; i < recipe.tags.length; i++) {
-//         console.log(recipe.tags[i])
-//         tag = await Tag.findById(recipe.tags[i].tag)
-//         tags.push(tag) 
-//       }
-      
-//       res.status(200).send({recipe,ingridients:recipe.ingridients,instructions:recipe.instructions,tags}) //tags:tags
-//    }catch(e){
-//         res.status(500).send(e)
-//    }
+
 })
 router.patch('/api/user/recipes/:recipe_id',auth,async(req,res)=>{
     const updates = Object.keys(req.body)
@@ -150,8 +126,32 @@ router.delete('/api/user/recipes/:recipe_id',auth, async(req,res)=>{
         res.status(500).send(e)
     }
 })
+router.get('/api/user/lastrecipes/load',async(req,res)=>{
+    const recipes = req.body.recipes
+    var result = []
+    var removed =[]
+    try {
+        for(let i = 0 ; i<recipes.length;i++)
+        {
+            
+            recipe = await Recipe.findById(recipes[i])
+            if(!recipe){
+                removed.push(recipes[i])
+            }
+            else{
+                result.push(recipe)
+            }
+            
+        }
 
-router.get('/api/community/search/recipe',async (req,res)=>{ // need to decide witch part will weight more
+        res.status(200).send({recipes:result,removed})
+    } catch (error) {
+        console.log(error.toString())
+        res.status(500).send(error)
+    }
+    
+})
+router.get('/api/community/search/recipe',auth,async (req,res)=>{ // need to decide witch part will weight more
     const query = req.query.search
     var tfidf = new TfIdf();
     try {
@@ -198,14 +198,11 @@ router.post('/api/recipe/:recipe_id/image',auth,async (req,res)=>{   //upload.si
     if (!recipe) {
         return res.status(404).send()
     }
-    console.log(recipe)
     recipe.image = await getUrlFromBase64(req.body.image)
-    console.log(recipe)
-    //recipe.image = req.file.buffer    
+     //recipe.image = req.file.buffer    
     await recipe.save()
     res.send()
 }, (error, req,res,next)=>{
-    console.log(error)
     res.status(400).send({error:error.toString()})
 })
 router.delete('/api/recipe/:recipe_id/image',auth,async (req,res)=>{
