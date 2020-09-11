@@ -1,4 +1,5 @@
 const express = require('express')
+const formidable = require('formidable');
 const Recipe = require('../models/recipe')
 const UserRecipeConnection = require('../models/userrecipeconnection')
 const RecipeTagConnection = require('../models/recipetagconnection')
@@ -6,6 +7,8 @@ const auth = require('../middlefunctions/auth')
 const Ingridient = require('../models/ingridient')
 const Tag = require('./../models/tag')
 const upload = require('../middlefunctions/upload')
+const fs = require("fs");
+const imgurUploader = require('imgur-uploader');
 var imgur = require('imgur')
 const router = new express.Router()
 // for the search
@@ -13,22 +16,38 @@ var TfIdf = require('node-tfidf');
 const { result } = require('underscore');
 ////////////////////////
 
+const uploadImage = async function(file) {
+    let url;
+    await imgurUploader(fs.readFileSync(file.path), {title: 'test'})
+    .then(function(data) {
+        url = data.link;
+    }).catch(function(error) {
+        console.log("error");
+    });
+    return url;
+}
+
 router.post('/api/user/recipes',auth, async(req,res)=>{
-    const recipe = new Recipe({...req.body, creator: req.user._id})
-    if(req.body.image){
-        recipe.image = await getUrlFromBase64(req.body.image)
-    }
-    try {
-        await recipe.save()
-        const userRecipeConnection = new UserRecipeConnection({
-            user: req.user._id,
-            recipe: recipe._id
-        })
-        await userRecipeConnection.save()
-        res.status(201).send(recipe)
-    } catch (e) {
-        res.status(400).send(e)
-    }
+    const form = formidable({ multiples: true });
+    form.parse(req, async (error, fields, files) => {
+        const recipe = new Recipe({...fields, creator: req.user._id})
+        if (files.image) {
+            recipe.image = await uploadImage(files.image)
+        }
+        console.log(recipe);
+
+        try {
+            await recipe.save()
+            const userRecipeConnection = new UserRecipeConnection({
+                user: req.user._id,
+                recipe: recipe._id
+            })
+            await userRecipeConnection.save()
+            res.status(201).send(recipe)
+        } catch (e) {
+            res.status(400).send(e)
+        }
+    });
 })
 router.get('/api/user/recipes',auth,async(req,res)=>{
     try {
