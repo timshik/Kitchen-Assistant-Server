@@ -6,6 +6,31 @@ const addFew = async(Collection,body,params)=>{
         await collection.save()
     }
 }
+
+const addFewTags = async(Collection, connection, tags, recipe) => {
+    let db_tags = await Collection.find({})
+    const tags_map = new Map();
+    db_tags.forEach((tag) => {
+        tags_map[tag.title] = tag._id;
+    });
+
+    for (let i = 0; i < tags.length; i++) {
+        if (tags_map[tags[i]] == null) {
+            tag = new Collection({title: tags[i]})
+            await tag.save()
+        } else {
+            tag = tags_map[tags[i]];
+        }
+
+        const recipeTagConnection = new connection({
+            recipe:recipe.owner,
+            tag:tag
+        })
+
+        await recipeTagConnection.save()
+    }
+}
+
 const getOne = async(Collection,params)=>{
     const collection = await Collection.findOne(params)
     if (!collection) {
@@ -49,4 +74,4 @@ const remove = async (Collection,params) =>{
 }
 
 
-module.exports =  {addFew,getOne,getFew,update,remove}
+module.exports =  {addFew,getOne,getFew,update,remove,addFewTags}

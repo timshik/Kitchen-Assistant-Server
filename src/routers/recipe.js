@@ -5,6 +5,7 @@ const UserRecipeConnection = require('../models/userrecipeconnection')
 const RecipeTagConnection = require('../models/recipetagconnection')
 const auth = require('../middlefunctions/auth')
 const Ingridient = require('../models/ingridient')
+const Instruction = require('../models/instruction')
 const Tag = require('./../models/tag')
 const upload = require('../middlefunctions/upload')
 const fs = require("fs");
@@ -14,6 +15,7 @@ const router = new express.Router()
 // for the search
 var TfIdf = require('node-tfidf');
 const { result } = require('underscore');
+const methods = require('../helper/methods');
 ////////////////////////
 
 const uploadImage = async function(file) {
@@ -31,10 +33,10 @@ router.post('/api/user/recipes',auth, async(req,res)=>{
     const form = formidable({ multiples: true });
     form.parse(req, async (error, fields, files) => {
         const recipe = new Recipe({...fields, creator: req.user._id})
+
         if (files.image) {
             recipe.image = await uploadImage(files.image)
         }
-        console.log(recipe);
 
         try {
             await recipe.save()
@@ -49,6 +51,24 @@ router.post('/api/user/recipes',auth, async(req,res)=>{
         }
     });
 })
+
+router.post('/api/user/recipes/add/complete', auth, async(req, res) => {
+    console.log(req.body)
+    let recipe_id = {owner: req.body.recipe_id};
+    let instructions = JSON.parse(req.body.instructions);
+    let ingredients = JSON.parse(req.body.ingredients);
+    let tags = JSON.parse(req.body.tags);
+
+    try {
+        methods.addFew(Instruction, instructions, recipe_id);
+        methods.addFew(Ingridient, ingredients, recipe_id);
+        methods.addFewTags(Tag, RecipeTagConnection, tags, recipe_id);
+        res.status(200).send(req.body);
+    } catch (error) {
+        res.status(500).send(e);
+    }
+})
+
 router.get('/api/user/recipes',auth,async(req,res)=>{
     try {
         const favorite = req.query.favorite  // favorite might be a string not a boolean

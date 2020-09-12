@@ -9,8 +9,6 @@ router.post('/api/user/recipe/:recipe_id/instructions',auth,async(req,res)=>{
         const instruction = new Instruction({...req.body[i], owner:req.params.recipe_id})
         try {
             await instruction.save()
-            
-            
         } catch (e) {
             return res.status(400).send(e)
         }
