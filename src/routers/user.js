@@ -4,7 +4,8 @@ const User = require('../models/user')
 const auth = require('../middlefunctions/auth')
 const router = new express.Router()
 const upload = require('../middlefunctions/upload')
-
+const imgurUploader = require('imgur-uploader');
+const fs = require("fs");
 router.post('/api/users', async (req, res) => {
     const user = new User(req.body)
 
@@ -96,9 +97,9 @@ router.delete('/api/users/profile', auth, async (req, res) => {
 router.post('/api/user/me/avatar',auth, async (req,res)=>{
     const form = formidable({ multiples: true });
     form.parse(req, async (error, fields, files) => {
-        req.user.avatar = await uploadImage(files.avatar);
+        req.user.avatar = await uploadImage(files.image);
         await req.user.save()
-        res.send()
+        res.send({avatar: req.user.avatar})
     })
 }, (error, req, res, next)=>{
     console.log(error)
