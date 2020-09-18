@@ -47,7 +47,7 @@ router.post('/api/users/logout', auth, async (req, res) => {
         })
         await req.user.save()
 
-        res.send()
+        res.send({result: true})
     } catch (e) {
         res.status(500).send()
     }
@@ -57,7 +57,7 @@ router.post('/api/users/logoutAll', auth, async (req, res) => {
     try {
         req.user.tokens = []
         await req.user.save()
-        res.send()
+        res.send({result: true})
     } catch (e) {
         res.status(500).send()
     }
@@ -108,7 +108,7 @@ router.post('/api/user/me/avatar',auth, async (req,res)=>{
 router.delete('/api/user/me/avatar',auth,async (req,res)=>{
     req.user.avatar = undefined
     await req.user.save()
-    res.send()
+    res.send({result: true})
 })
 
 //no need for now
