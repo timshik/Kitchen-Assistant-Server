@@ -1,8 +1,11 @@
 const express = require('express')
+const formidable = require('formidable');
 const User = require('../models/user')
 const auth = require('../middlefunctions/auth')
 const router = new express.Router()
 const upload = require('../middlefunctions/upload')
+const imgurUploader = require('imgur-uploader');
+const fs = require("fs");
 router.post('/api/users', async (req, res) => {
     const user = new User(req.body)
 
@@ -14,6 +17,17 @@ router.post('/api/users', async (req, res) => {
         res.status(400).send(e)
     }
 })
+
+const uploadImage = async function(file) {
+    let url;
+    await imgurUploader(fs.readFileSync(file.path), {title: 'test'})
+    .then(function(data) {
+        url = data.link;
+    }).catch(function(error) {
+        console.log("error");
+    });
+    return url;
+}
 
 router.post('/api/users/login', async (req, res) => {
    
@@ -33,7 +47,7 @@ router.post('/api/users/logout', auth, async (req, res) => {
         })
         await req.user.save()
 
-        res.send()
+        res.send({result: true})
     } catch (e) {
         res.status(500).send()
     }
@@ -43,7 +57,7 @@ router.post('/api/users/logoutAll', auth, async (req, res) => {
     try {
         req.user.tokens = []
         await req.user.save()
-        res.send()
+        res.send({result: true})
     } catch (e) {
         res.status(500).send()
     }
@@ -80,29 +94,23 @@ router.delete('/api/users/profile', auth, async (req, res) => {
     }
 })
 
-router.post('/api/user/me/avatar',auth,upload.single('avatar'),async (req,res)=>{
-    req.user.avatar = req.file.buffer
-    await req.user.save()
-    res.send()
-}, (error, req,res,next)=>{
+router.post('/api/user/me/avatar',auth, async (req,res)=>{
+    const form = formidable({ multiples: true });
+    form.parse(req, async (error, fields, files) => {
+        req.user.avatar = await uploadImage(files.image);
+        await req.user.save()
+        res.send({avatar: req.user.avatar})
+    })
+}, (error, req, res, next)=>{
     console.log(error)
     res.status(400).send({error:error.toString()})
 })
 router.delete('/api/user/me/avatar',auth,async (req,res)=>{
     req.user.avatar = undefined
     await req.user.save()
-    res.send()
+    res.send({result: true})
 })
-router.post('/test',async (req,res)=>{
-    try {
-        console.log("hi")
-        console.log(req.file.buffer)
-    res.send()
-    } catch (error) {
-        res.status(404).send()
-    }
-    
-})
+
 //no need for now
 // router.get('/api/users/:id/avatar',async (req,res)=>{
 //     try {

@@ -5,6 +5,7 @@ const UserRecipeConnection = require('../models/userrecipeconnection')
 const RecipeTagConnection = require('../models/recipetagconnection')
 const auth = require('../middlefunctions/auth')
 const Ingridient = require('../models/ingridient')
+const Instruction = require('../models/instruction')
 const Tag = require('./../models/tag')
 const upload = require('../middlefunctions/upload')
 const fs = require("fs");
@@ -14,6 +15,7 @@ const router = new express.Router()
 // for the search
 var TfIdf = require('node-tfidf');
 const { result } = require('underscore');
+const methods = require('../helper/methods');
 ////////////////////////
 
 const uploadImage = async function(file) {
@@ -24,146 +26,166 @@ const uploadImage = async function(file) {
     }).catch(function(error) {
         console.log("error");
     });
+    
     return url;
 }
 
-router.post('/api/user/recipes',auth, async(req,res)=>{
-    const form = formidable({ multiples: true });
+router.post('/api/user/recipes', auth, async(req, res)=>{
+    const form = formidable({multiples: true});
     form.parse(req, async (error, fields, files) => {
-        const recipe = new Recipe({...fields, creator: req.user._id})
+        const recipe = new Recipe({...fields, creator: req.user._id});
+
         if (files.image) {
-            recipe.image = await uploadImage(files.image)
+            recipe.image = await uploadImage(files.image);
         }
-        console.log(recipe);
 
         try {
-            await recipe.save()
+            await recipe.save();
             const userRecipeConnection = new UserRecipeConnection({
                 user: req.user._id,
                 recipe: recipe._id
-            })
-            await userRecipeConnection.save()
-            res.status(201).send(recipe)
+            });
+
+            await userRecipeConnection.save();
+            res.status(201).send(recipe);
         } catch (e) {
-            res.status(400).send(e)
+            res.status(400).send(e);
         }
     });
-})
+});
+
+router.post('/api/user/recipes/add/complete', auth, async(req, res) => {
+    let recipe_id = {owner: req.body.recipe_id};
+    let instructions = JSON.parse(req.body.instructions);
+    let ingredients = JSON.parse(req.body.ingredients);
+    let tags = JSON.parse(req.body.tags);
+
+    try {
+        methods.addFew(Instruction, instructions, recipe_id);
+        methods.addFew(Ingridient, ingredients, recipe_id);
+        methods.addFewTags(Tag, RecipeTagConnection, tags, recipe_id);
+        await Recipe.updateTotalTime(req.body.recipe_id);
+        res.status(200).send(req.body);
+    } catch (error) {
+        res.status(500).send(e);
+    }
+});
+
 router.get('/api/user/recipes',auth,async(req,res)=>{
     try {
-        const favorite = req.query.favorite  // favorite might be a string not a boolean
-        const userrecipes =await UserRecipeConnection.find({user:req.user._id,favorite:favorite ==='true'})
-        if(!userrecipes){
-            return res.status(404).send()
+        const favorite = req.query.favorite;  // favorite might be a string not a boolean
+        const userrecipes =await UserRecipeConnection.find({user:req.user._id,favorite:favorite ==='true'});
+        if(!userrecipes) {
+            return res.status(404).send();
         }
         
         for (let i = 0; i < userrecipes.length; i++) {
-            await userrecipes[i].populate('recipe').execPopulate()
-            userrecipes[i] = userrecipes[i].recipe
-          }
+            await userrecipes[i].populate('recipe').execPopulate();
+            userrecipes[i] = userrecipes[i].recipe;
+        }
        
-        res.status(200).send(userrecipes)
+        res.status(200).send(userrecipes);
     } catch (error) {
-        res.status(500).send(error)
+        res.status(500).send(error);
     }
-})
+});
+
 router.get('/api/community/recipes',auth,async (req,res)=>{
     try {
         let limit = req.query.limit === undefined ? 10 : Number(req.query.limit);
         let page = req.query.page === undefined ? 1 : Number(req.query.page);
-        recipes = await Recipe.find({}).limit(limit).skip(limit * page)
-        res.status(200).send(recipes)
+        console.log([page, limit]);
+        recipes = await Recipe.find({}).limit(limit).skip(limit * page);
+        console.log(recipes);
+        res.status(200).send(recipes);
     } catch (error) {
-        res.status(500).send(error)
+        res.status(500).send(error);
     }
-    
-})
-router.get('/api/user/recipes/:recipe_id',auth,async(req,res)=>{
-   const recipe_id = req.params.recipe_id 
-    try {
-        const result = await Recipe.findFullDetails(recipe_id)
-        res.status(200).send(result)
-    } catch (error) {
-        res.status(500).send(error)
-    }
+});
 
-})
-router.patch('/api/user/recipes/:recipe_id',auth,async(req,res)=>{
-    const updates = Object.keys(req.body)
-    const allowedUpdates = ['title','description','adate','status' ]
-    const isValidOperation = updates.every((update) => allowedUpdates.includes(update))
+router.get('/api/user/recipes/:recipe_id', auth, async(req,res)=>{
+   const recipe_id = req.params.recipe_id;
+
+    try {
+        const result = await Recipe.findFullDetails(recipe_id);
+        res.status(200).send(result);
+    } catch (error) {
+        res.status(500).send(error);
+    }
+});
+
+router.patch('/api/user/recipes/:recipe_id', auth, async(req,res) => {
+    const updates = Object.keys(req.body);
+    const allowedUpdates = ['title','description','adate','status' ];
+    const isValidOperation = updates.every((update) => allowedUpdates.includes(update));
 
     if (!isValidOperation){
-        return res.status(400).send({ error: 'Invalid updates!' })
+        return res.status(400).send({ error: 'Invalid updates!' });
     }
     try {
         
         const recipe = await Recipe.findOne({ _id: req.params.recipe_id, creator: req.user._id})
 
         if (!recipe) {
-            return res.status(404).send()
+            return res.status(404).send();
         }
 
-        updates.forEach((update) => recipe[update] = req.body[update])
-        await recipe.save()
-        res.send('succes')
+        updates.forEach((update) => recipe[update] = req.body[update]);
+        await recipe.save();
+        res.send('succes');
     } catch (e) {
-        res.status(400).send(e)
+        res.status(400).send(e);
     }
-})
+});
 
-router.delete('/api/user/recipes/:recipe_id',auth, async(req,res)=>{
-   
+router.delete('/api/user/recipes/:recipe_id', auth, async(req,res) => {
     try {
-        const recipe = await Recipe.findOneAndDelete({ _id: req.params.recipe_id, creator: req.user._id})
+        const recipe = await Recipe.findOneAndDelete({ _id: req.params.recipe_id, creator: req.user._id});
       
         if (!recipe) {
-            res.status(404).send()
+            res.status(404).send();
         }
 
-        res.send('succes')
+        res.send('succes');
     } catch (e) {
-        res.status(500).send(e)
+        res.status(500).send(e);
     }
-})
-router.get('/api/user/lastrecipes/load',async(req,res)=>{
-    const recipes = req.body.recipes
-    var result = []
-    var removed =[]
+});
+
+router.post('/api/user/lastrecipes/load', auth, async(req, res)=>{
+    const recipes = JSON.parse(req.body.recipes);
+    let result = [], removed = [];
+    
     try {
-        for(let i = 0 ; i<recipes.length;i++)
-        {
-            
+        for(let i = 0; i < recipes.length; i++) {
             recipe = await Recipe.findById(recipes[i])
-            if(!recipe){
+            if(!recipe) {
                 removed.push(recipes[i])
-            }
-            else{
+            } else {
                 result.push(recipe)
-            }
-            
+            } 
         }
 
-        res.status(200).send({recipes:result,removed})
+        res.status(200).send({recipes:result,removed});
     } catch (error) {
-        console.log(error.toString())
-        res.status(500).send(error)
+        res.status(500).send(error);
     }
-    
-})
-router.get('/api/community/search/recipe',auth,async (req,res)=>{ // need to decide witch part will weight more
-    const query = req.query.search
+});
+
+router.get('/api/community/search/recipe', auth, async (req, res) => { // need to decide witch part will weight more
+    const query = req.query.search;
     var tfidf = new TfIdf();
     try {
         let limit = req.query.limit === undefined ? 10 : Number(req.query.limit);
         let page = req.query.page === undefined ? 1 : Number(req.query.page);
 
-        recipes = await Recipe.find({})
-        let tags = await Tag.find({})
+        recipes = await Recipe.find({});
+        let tags = await Tag.find({});
         const tags_map = new Map();
         tags.forEach((tag) => {
             tags_map[tag._id] = tag.title;
         });
+
         for(let i = 0; i < recipes.length; i++){
             let content = await parseRecipe(recipes[i],[{        // parseRecipe will parse to array of strings every recipe by the collection you send and the fields of each collection, the body of the recipe itself will be parsed automatically with the fields title and description
                 collection:'ingridients',
@@ -174,124 +196,110 @@ router.get('/api/community/search/recipe',auth,async (req,res)=>{ // need to dec
             },{
                 collection:'tags',
                 fields:['title']
-            }],
-            tags_map)
+            }], tags_map)
             
             
-            tfidf.addDocument(content)
+            tfidf.addDocument(content);
         }
 
-        let result = []
+        let result = [];
         tfidf.tfidfs(query, function(i, measure) {
-            result.push({recipe:recipes[i], score: measure})
+            result.push({recipe:recipes[i], score: measure});
         });
-        result.sort(compare)
-        result = result.slice((page - 1) * limit, page * limit).map((obj)=> obj.recipe)
-        res.send(result)
+        result.sort(compare);
+        result = result.slice((page - 1) * limit, page * limit).map((obj) => obj.recipe);
+        res.send(result);
     } catch (error) {
-        res.status(500).send(error.toString())
+        res.status(500).send(error.toString());
     }
-})
-router.post('/api/recipe/:recipe_id/image',auth,async (req,res)=>{   //upload.single('image'),
+});
+
+router.post('/api/recipe/:recipe_id/image', auth, async (req, res) => {   //upload.single('image'),
     const recipe = await Recipe.findOne({ _id: req.params.recipe_id, creator: req.user._id})
 
     if (!recipe) {
-        return res.status(404).send()
+        return res.status(404).send();
     }
-    recipe.image = await getUrlFromBase64(req.body.image)
-     //recipe.image = req.file.buffer    
-    await recipe.save()
-    res.send()
-}, (error, req,res,next)=>{
-    res.status(400).send({error:error.toString()})
-})
+
+    recipe.image = await getUrlFromBase64(req.body.image);
+    await recipe.save();
+    res.send();
+}, (error, req, res, next) => {
+    res.status(400).send({error:error.toString()});
+});
+
 router.delete('/api/recipe/:recipe_id/image',auth,async (req,res)=>{
-    const recipe = await Recipe.findOne({ _id: req.params.recipe_id, creator: req.user._id})
+    const recipe = await Recipe.findOne({ _id: req.params.recipe_id, creator: req.user._id});
 
     if (!recipe) {
-        return res.status(404).send()
+        return res.status(404).send();
     }
-       recipe.image = undefined
-    await recipe.save()
-    res.send()
-})
+
+    recipe.image = undefined;
+    await recipe.save();
+    res.send();
+});
 ////////////////// helper functions
 
 const parseRecipe = async (recipe, obj, tags_map)=>{
     try {
         const fullRecipe = await recipe.getFullDetails(tags_map);
-        let content =  await parsecollections([fullRecipe.recipe],['title','description'])
+        let content =  await parsecollections([fullRecipe.recipe], ['title','description']);
 
         for(let i =0 ;i<obj.length;i++) {
-            let parsedCollection = await parsecollections(fullRecipe[obj[i].collection],obj[i].fields)
-            content = content.concat(parsedCollection)
+            let parsedCollection = await parsecollections(fullRecipe[obj[i].collection], obj[i].fields);
+            content = content.concat(parsedCollection);
         }
 
-        return content
+        return content;
     } catch (error) {
-        throw new Error(error)
+        throw new Error(error);
     }
 }
 
-let i = 0;
+const parsecollections = async(collections, fields) => {
+    let content = [];
 
-const parsecollections = async(collections,fields)=>{
-    let content = []
-    if(collections != null){
-        collections.forEach((collections)=>{
-            fields.forEach((field)=>{
-                if (collections !=null && field != null && field != undefined && collections[field] != undefined && collections[field] != null) {
-                    content = content.concat(collections[field].split(' ').map((name) =>clean(name))) 
+    if(collections != null) {
+        collections.forEach((collections) => {
+            fields.forEach((field) => {
+                if ((collections != null) && (field != null) && (field != undefined) && (collections[field] != undefined) && (collections[field] != null)) {
+                    content = content.concat(collections[field].split(' ').map((name) => clean(name))) ;
                 }
-            })
-        })
+            });
+        });
     }
-    return content
+
+    return content;
 }
 
 
-function compare( a, b ) {
-    if ( a.score > b.score ){
-      return -1;
+function compare(a, b) {
+    if (a.score > b.score) {
+        return -1;
     }
-    if (  a.score < b.score  ){
-      return 1;
-    }
-    return 0;
-  }
-  function clean(name){
-      name = name.toLowerCase()
-      const regex = /[.,()\s]/g;
 
-      const result = name.replace(regex, '');
+    return a.score < b.score ? 1 : 0;
+}
 
-      return result
-  }
+function clean(name){
+    name = name.toLowerCase();
+    const regex = /[.,()\s]/g;
+    const result = name.replace(regex, '');
+    return result;
+}
 
-  const getUrlFromBase64 = async function(base64){
+const getUrlFromBase64 = async function(base64){
     var url;
     await imgur.uploadBase64(base64)
     .then(function (json) {
-        url = json.data.link;
+    url = json.data.link;
     })
     .catch(function (err) {
-        console.error(err.message);
+    console.error(err.message);
     });
-    return url
-   }
-module.exports = router
 
+    return url;
+}
 
-
-
-
-
- 
-    // let parsedIngridients = await parsecollections(fullRecipe.ingridients,['title','description'])
-    // let parsedInstructions = await parsecollections(fullRecipe.instructions,['description','specialNotes'])
-    // let parsedTags = await parsecollections(fullRecipe.tags,['title'])
-    
-    // content = content.concat(parsedRecipe)
-    // content =  content.concat(parsedIngridients)
-    // content =  content.concat(parsedInstructions)
-    // content = content.concat(parsedTags)
+module.exports = router;
